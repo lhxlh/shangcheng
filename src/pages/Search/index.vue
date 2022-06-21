@@ -18,11 +18,15 @@
             <li class="with-x" v-if="searchParams.keyword">
               {{ searchParams.keyword }}<i @click="removeKeyword">×</i>
             </li>
+            <li class="with-x" v-if="searchParams.trademark">
+              {{ searchParams.trademark.split(":")[1]
+              }}<i @click="removeTrademark">×</i>
+            </li>
           </ul>
         </div>
 
         <!--selector-->
-        <SearchSelector />
+        <SearchSelector @trademarkInfo="trademarkInfo" />
 
         <!--details-->
         <div class="details clearfix">
@@ -174,6 +178,15 @@ export default {
     removeKeyword() {
       this.searchParams.keyword = ''
       this.$router.push({ name: 'search', query: this.$route.query })
+      this.$bus.$emit('clear')
+    },
+    trademarkInfo(trademark) {
+      this.searchParams.trademark = `${trademark.tmId}:${trademark.tmName}`
+      this.getData()
+    },
+    removeTrademark() {
+      this.searchParams.trademark = ''
+      this.getData()
     }
   },
   watch: {

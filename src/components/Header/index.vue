@@ -73,7 +73,16 @@ export default {
         location.query = this.$route.query
         this.$router.push(location)
       }
+    },
+    clear() {
+      this.keyWord = ''
     }
+  },
+  mounted() {
+    this.$bus.$on('clear', this.clear)
+  },
+  beforeDestroy() {
+    this.$bus.$off('clear')
   },
 }
 </script>
