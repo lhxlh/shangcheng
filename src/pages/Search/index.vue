@@ -22,34 +22,30 @@
               {{ searchParams.trademark.split(":")[1]
               }}<i @click="removeTrademark">×</i>
             </li>
+            <li
+              class="with-x"
+              v-for="(attrValue, index) in searchParams.props"
+              :key="index"
+            >
+              {{ attrValue.split(":")[1]
+              }}<i @click="removeattrValue(index)">×</i>
+            </li>
           </ul>
         </div>
 
         <!--selector-->
-        <SearchSelector @trademarkInfo="trademarkInfo" />
+        <SearchSelector @trademarkInfo="trademarkInfo" @attrInfo="attrInfo" />
 
         <!--details-->
         <div class="details clearfix">
           <div class="sui-navbar">
             <div class="navbar-inner filter">
               <ul class="sui-nav">
-                <li class="active">
-                  <a href="#">综合</a>
+                <li :class="{ active: isOne }" @click="changeOrder">
+                  <a>综合</a>
                 </li>
-                <li>
-                  <a href="#">销量</a>
-                </li>
-                <li>
-                  <a href="#">新品</a>
-                </li>
-                <li>
-                  <a href="#">评价</a>
-                </li>
-                <li>
-                  <a href="#">价格⬆</a>
-                </li>
-                <li>
-                  <a href="#">价格⬇</a>
+                <li :class="{ active: isTwo }" @click="changeOrders">
+                  <a>价格</a>
                 </li>
               </ul>
             </div>
@@ -59,9 +55,9 @@
               <li class="yui3-u-1-5" v-for="good in goodsList" :key="good.id">
                 <div class="list-wrap">
                   <div class="p-img">
-                    <a href="item.html" target="_blank"
+                    <router-link :to="`/detail/${good.id}`"
                       ><img :src="good.defaultImg"
-                    /></a>
+                    /></router-link>
                   </div>
                   <div class="price">
                     <strong>
@@ -95,35 +91,13 @@
               </li>
             </ul>
           </div>
-          <div class="fr page">
-            <div class="sui-pagination clearfix">
-              <ul>
-                <li class="prev disabled">
-                  <a href="#">«上一页</a>
-                </li>
-                <li class="active">
-                  <a href="#">1</a>
-                </li>
-                <li>
-                  <a href="#">2</a>
-                </li>
-                <li>
-                  <a href="#">3</a>
-                </li>
-                <li>
-                  <a href="#">4</a>
-                </li>
-                <li>
-                  <a href="#">5</a>
-                </li>
-                <li class="dotted"><span>...</span></li>
-                <li class="next">
-                  <a href="#">下一页»</a>
-                </li>
-              </ul>
-              <div><span>共10页&nbsp;</span></div>
-            </div>
-          </div>
+          <Pagination
+            :pageNo="searchParams.pageNo"
+            :pageSize="searchParams.pageSize"
+            :total="total"
+            :continues="5"
+            @getPageNo="getPageNo"
+          />
         </div>
       </div>
     </div>
@@ -132,7 +106,7 @@
 
 <script>
 import SearchSelector from './SearchSelector/SearchSelector'
-import { mapGetters } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 export default {
   name: 'Search',
   data() {
@@ -143,7 +117,7 @@ export default {
         category3Id: "",
         categoryName: "",
         keyword: "",
-        order: "",
+        order: "1:desc",
         pageNo: 1,
         pageSize: 10,
         props: [],
@@ -161,11 +135,22 @@ export default {
     this.getData()
   },
   computed: {
-    ...mapGetters(['goodsList'])
+    ...mapGetters(['goodsList']),
+    ...mapState({ total: state => state.search.searchList.total }),
+    isOne() {
+      return this.searchParams.order.indexOf('1') != -1
+    },
+    isTwo() {
+      return this.searchParams.order.indexOf('2') != -1
+    }
   },
   methods: {
     getData() {
+      if (this.$route.params.goOne) {
+        this.searchParams.pageNo = this.$route.params.goOne
+      }
       this.$store.dispatch('getSearchList', this.searchParams)
+      this.$route.params.goOne = undefined
     },
     removeCategoryName() {
       this.searchParams.categoryName = ''
@@ -186,6 +171,29 @@ export default {
     },
     removeTrademark() {
       this.searchParams.trademark = ''
+      this.getData()
+    },
+    attrInfo(attr, attrValue) {
+      let props = `${attr.attrId}:${attrValue}:${attr.attrName}`
+      if (this.searchParams.props.indexOf(props) == -1) {
+        this.searchParams.props.push(props)
+      }
+      this.getData()
+    },
+    removeattrValue(index) {
+      this.searchParams.props.splice(index, 1)
+      this.getData()
+    },
+    changeOrder() {
+      this.searchParams.order = "1:desc"
+      this.getData()
+    },
+    changeOrders() {
+      this.searchParams.order = "2:desc"
+      this.getData()
+    },
+    getPageNo(PageNo) {
+      this.searchParams.pageNo = PageNo
       this.getData()
     }
   },

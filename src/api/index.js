@@ -18,3 +18,12 @@ export const reqGetSearchInfo = (params) => requests({
     method: 'post',
     data: params
 })
+export const reqGoodsInfo = (skuId) => requests({
+    url: `/item/${skuId}`,
+    method: 'get',
+})
+export const reqAddOrUpdataShopCart = (skuId, skuNum) => requests({
+    url: `/cart/addToCart/${skuId}/${skuNum}`,
+    method: 'post',
+
+})
